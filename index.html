@@ -1,147 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
   <title>Exam Countdown</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg-dark: #000000;
-      --text-dark: #f5f5f5;
-      --bg-light: #ffffff;
-      --text-light: #222222;
-      --accent: #4CAF50;
-      --transition-speed: 0.4s;
+    :root{
+      --bg-dark:#000;
+      --text-dark:#f5f5f5;
+      --bg-light:#fff;
+      --text-light:#222;
+      --accent:#FFFFFF;
+      --transition-speed:0.35s;
+      --gap-desktop:20px;
+      --gap-mobile:10px;
+      --item-min:64px;
+      --tick-duration:4s; /* slowed fade cycle */
     }
 
-    body {
-      margin: 0;
-      font-family: 'Comfortaa', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: var(--bg-dark);
-      color: var(--text-dark);
-      transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    html,body{height:100%;}
+    body{
+      margin:0;
+      padding:20px;
+      box-sizing:border-box;
+      font-family:'Comfortaa',sans-serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background-color:var(--bg-dark);
+      color:var(--text-dark);
+      transition:background-color var(--transition-speed) ease,color var(--transition-speed) ease;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    body.light-mode{
+      background-color:var(--bg-light);
+      color:var(--text-light);
     }
 
-    body.light-mode {
-      background-color: var(--bg-light);
-      color: var(--text-light);
+    .toggle-btn{
+      position:fixed;
+      top:calc(14px + env(safe-area-inset-top, 0));
+      right:calc(14px + env(safe-area-inset-right, 0));
+      background:transparent;
+      border:2px solid currentColor;
+      border-radius:20px;
+      padding:6px 12px;
+      cursor:pointer;
+      font-size:0.85rem;
+      transition:background-color 0.18s ease,color 0.18s ease,transform .12s ease;
+      z-index:20;
+      touch-action:manipulation;
+    }
+    .toggle-btn:active{ transform:scale(.98); }
+    .toggle-btn:hover{ background-color:var(--accent); color:#fff; border-color:var(--accent); }
+
+    .container{
+      width:min(980px,98%);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:1rem;
     }
 
-    .title {
-      font-size: 1.8rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      margin-bottom: 30px;
-      text-align: center;
+    .title{
+      font-size:clamp(1.1rem,2.8vw,1.8rem);
+      font-weight:600;
+      letter-spacing:1px;
+      margin:0 0 8px 0;
+      text-align:center;
     }
 
-    .countdown {
-      display: flex;
-      gap: 20px;
-      font-size: 2.5rem;
-      font-weight: 600;
-      text-align: center;
-      flex-wrap: wrap;
+    .countdown{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:var(--gap-desktop);
+      font-weight:600;
+      text-align:center;
+      flex-wrap:wrap;
+      font-size:clamp(1.6rem,3.8vw,2.5rem);
     }
 
-    .countdown div {
-      min-width: 80px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      animation: fadeIn 1s ease forwards;
+    .count-item{
+      flex:1 1 110px;
+      min-width:var(--item-min);
+      max-width:220px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:6px 4px;
+      box-sizing:border-box;
     }
 
-    .number {
-      font-size: 2.5em;
-      animation: numberChange 0.6s ease;
-      text-shadow: 0 0 10px rgba(255,255,255,0.1);
-      transition: transform 0.3s ease, text-shadow 0.3s ease;
+    .number{
+      font-size:clamp(1.2rem,8vw,2.5em);
+      line-height:1;
+      white-space:nowrap;
     }
 
-    body.light-mode .number {
-      text-shadow: 0 0 10px rgba(0,0,0,0.08);
+    .label{
+      font-size:0.78em;
+      opacity:0.75;
+      margin-top:6px;
     }
 
-    .label {
-      font-size: 0.8em;
-      opacity: 0.7;
+    /* single "tick" word centered under the countdown */
+    .tick-word{
+      margin-top:14px;
+      font-size:1rem;
+      color:var(--accent);
+      opacity:0;
+      animation:tickFade var(--tick-duration) ease-in-out infinite;
+      text-transform:lowercase;
+      letter-spacing:0.6px;
     }
 
-    .toggle-btn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: none;
-      border: 2px solid currentColor;
-      border-radius: 20px;
-      padding: 5px 12px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      transition: background-color 0.3s ease, color 0.3s ease;
+    @keyframes tickFade {
+      0%   { opacity: 0; }
+      25%  { opacity: 1; }
+      75%  { opacity: 1; }
+      100% { opacity: 0; }
     }
 
-    .toggle-btn:hover {
-      background-color: var(--accent);
-      color: white;
-      border-color: var(--accent);
+    @media (max-width:720px){
+      .countdown{ gap:var(--gap-mobile); }
     }
 
-    @keyframes numberChange {
-      0% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.4); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 600px) {
-      .countdown {
-        gap: 10px;
-        font-size: 2rem;
-      }
-      .countdown div {
-        min-width: 60px;
-      }
-      .number {
-        font-size: 2em;
-      }
+    @media (prefers-reduced-motion:reduce){
+      *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+      .tick-word{ opacity:0 !important; animation:none !important; }
     }
   </style>
 </head>
 <body>
+  <button class="toggle-btn" onclick="toggleMode()" aria-pressed="false" aria-label="Toggle dark and light mode">Dark</button>
 
-  <button class="toggle-btn" onclick="toggleMode()">Dark</button>
-  <div class="title">The exam is on the road</div>
-  
-  <div class="countdown" id="countdown">
-    <div><span class="number" id="days">0</span><span class="label">Days</span></div>
-    <div><span class="number" id="hours">0</span><span class="label">Hours</span></div>
-    <div><span class="number" id="minutes">0</span><span class="label">Minutes</span></div>
-    <div><span class="number" id="seconds">0</span><span class="label">Seconds</span></div>
+  <div class="container" role="main">
+    <div class="title">The exam is on the road</div>
+
+    <div class="countdown" id="countdown" aria-live="polite">
+      <div class="count-item">
+        <span class="number" id="days">0</span>
+        <span class="label">Days</span>
+      </div>
+      <div class="count-item">
+        <span class="number" id="hours">0</span>
+        <span class="label">Hours</span>
+      </div>
+      <div class="count-item">
+        <span class="number" id="minutes">0</span>
+        <span class="label">Minutes</span>
+      </div>
+      <div class="count-item">
+        <span class="number" id="seconds">0</span>
+        <span class="label">Seconds</span>
+      </div>
+    </div>
+
+    <div class="tick-word" aria-hidden="true">tick</div>
   </div>
 
   <script>
     const targetDate = new Date("August 16, 2025 00:00:00").getTime();
 
-    function updateCountdown() {
-      const now = new Date().getTime();
+    function updateCountdown(){
+      const now = Date.now();
       const distance = targetDate - now;
 
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      if (distance <= 0){
+        ["days","hours","minutes","seconds"].forEach(id => document.getElementById(id).textContent = 0);
+        return;
+      }
+
+      const days = Math.floor(distance / (1000*60*60*24));
+      const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+      const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
+      const seconds = Math.floor((distance % (1000*60)) / 1000);
 
       document.getElementById("days").textContent = days;
       document.getElementById("hours").textContent = hours;
@@ -149,15 +186,15 @@
       document.getElementById("seconds").textContent = seconds;
     }
 
-    function toggleMode() {
+    function toggleMode(){
       document.body.classList.toggle("light-mode");
-      document.querySelector(".toggle-btn").textContent =
-        document.body.classList.contains("light-mode") ? "Light" : "Dark";
+      const btn = document.querySelector(".toggle-btn");
+      btn.textContent = document.body.classList.contains("light-mode") ? "Light" : "Dark";
+      btn.setAttribute("aria-pressed", String(document.body.classList.contains("light-mode")));
     }
 
-    setInterval(updateCountdown, 1000);
     updateCountdown();
+    setInterval(updateCountdown,1000);
   </script>
-
 </body>
 </html>
