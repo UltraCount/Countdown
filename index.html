@@ -39,6 +39,14 @@
       color:var(--text-light);
     }
 
+    @font-face {
+    font-family: "MyTickFont";
+    src: url("./DG Trika Regular.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+
     .toggle-btn{
       position:fixed;
       top:calc(14px + env(safe-area-inset-top, 0));
@@ -109,9 +117,7 @@
 
     /* single "tick" word centered under the countdown */
     .tick-word{
-       font-family: 'MyCustomFont'; /* trika search for it on behance */
-
-        src: url('/DG Trika Regular.woff2') format('woff2');
+      font-family: "MyTickFont", sans-serif;
       margin-top:14px;
       font-size:1rem;
       color:var(--accent);
